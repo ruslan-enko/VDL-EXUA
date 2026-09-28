@@ -1,0 +1,135 @@
+/* Minimalist modern terminal styles for vdl */
+
+Screen {
+    align: center middle;
+    background: transparent;
+}
+
+#card {
+    width: 68;
+    max-width: 95%;
+    height: auto;
+    border: round #4b5563;
+    padding: 1 3;
+    background: #111827;
+}
+
+.brand {
+    color: #93c5fd;
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+.brand-line {
+    border-bottom: solid #374151;
+    margin-bottom: 1;
+    height: 1;
+}
+
+.section-title {
+    color: #94a3b8;
+    margin-bottom: 1;
+}
+
+.video-heading {
+    color: #f3f4f6;
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+.input-container {
+    margin: 1 0;
+    height: auto;
+}
+
+#url-input {
+    border: none;
+    background: #1f2937;
+    color: #f9fafb;
+    padding: 0 1;
+    height: 3;
+}
+
+#url-input:focus {
+    border: tall #3b82f6;
+}
+
+.step-row {
+    height: 1;
+    margin: 0;
+    color: #64748b;
+}
+
+.step-done {
+    color: #10b981;
+}
+
+.step-active {
+    color: #60a5fa;
+}
+
+.quality-container {
+    margin: 1 0;
+    height: auto;
+}
+
+.quality-item {
+    height: 1;
+    color: #9ca3af;
+    padding-left: 1;
+}
+
+.quality-item-selected {
+    color: #60a5fa;
+    text-style: bold;
+}
+
+.progress-container {
+    margin: 1 0;
+    height: auto;
+}
+
+.progress-bar-text {
+    color: #60a5fa;
+    margin-bottom: 1;
+}
+
+.progress-stats {
+    color: #9ca3af;
+}
+
+.success-title {
+    color: #10b981;
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+.error-title {
+    color: #ef4444;
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+.error-desc {
+    color: #9ca3af;
+    margin-bottom: 1;
+}
+
+.file-info {
+    color: #e5e7eb;
+    margin-bottom: 1;
+}
+
+.folder-info {
+    color: #64748b;
+    margin-bottom: 1;
+}
+
+.footer-nav {
+    color: #64748b;
+    margin-top: 1;
+}
+
+.footer-key {
+    color: #94a3b8;
+}
