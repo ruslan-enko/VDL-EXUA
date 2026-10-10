@@ -77,3 +77,23 @@ async def test_complete_and_error_screens():
         app.show_error("Test Title", "Test Desc", "https://example.com")
         await pilot.pause()
         assert isinstance(app.screen, ErrorScreen)
+
+
+@pytest.mark.asyncio
+async def test_finding_screen_step_handling():
+    app = VDLApp()
+    async with app.run_test() as pilot:
+        screen = FindingScreen("https://example.com/video")
+        app.push_screen(screen)
+        await pilot.pause()
+
+        # Verify steps update without raising RuntimeError
+        screen._handle_step("page_found", "Test Page")
+        screen._handle_step("player_found", "Test Player")
+        screen._handle_step("stream_found", "Test Stream")
+        screen._handle_step("qualities_ready", "3 available")
+        await pilot.pause()
+
+        step_page = screen.query_one("#step-page")
+        assert "✓ Page found" in str(step_page.render())
+

@@ -38,22 +38,26 @@ class FindingScreen(Screen):
 
     async def _do_find(self) -> None:
         def on_step(step: str, detail: str) -> None:
-            self.app.call_from_thread(self._handle_step, step, detail)
+            self.app.call_safe(self._handle_step, step, detail)
 
         try:
             info = await find_video(self.target_url, on_step=on_step)
             self._video_info = info
-            # Transition to quality selection
-            self.app.call_from_thread(self.app.show_quality_selection, info)
+            if info.episodes and len(info.episodes) >= 2:
+                # Serial with seasons/episodes → episode selection first
+                self.app.call_safe(self.app.show_episode_selection, info)
+            else:
+                # Single video → quality selection
+                self.app.call_safe(self.app.show_quality_selection, info)
         except FinderError as e:
-            self.app.call_from_thread(
+            self.app.call_safe(
                 self.app.show_error,
                 "✕ Could not find a video stream",
                 str(e),
                 self.target_url,
             )
         except Exception as e:
-            self.app.call_from_thread(
+            self.app.call_safe(
                 self.app.show_error,
                 "✕ An unexpected error occurred",
                 str(e),

@@ -48,6 +48,8 @@ class DownloadScreen(Screen):
                 yield Static("-- MB/s", id="stat-speed", classes="progress-stats")
                 yield Static("--:-- remaining", id="stat-eta", classes="progress-stats")
 
+            yield Static("", id="stat-status", classes="progress-status")
+
             yield Static("Esc cancel", classes="footer-nav")
 
     def on_mount(self) -> None:
@@ -59,7 +61,7 @@ class DownloadScreen(Screen):
         self.run_worker(self._run_download())
 
     def _on_progress_update(self, progress: DownloadProgress) -> None:
-        self.app.call_from_thread(self._update_ui, progress)
+        self.app.call_safe(self._update_ui, progress)
 
     def _update_ui(self, progress: DownloadProgress) -> None:
         try:
@@ -81,6 +83,10 @@ class DownloadScreen(Screen):
             # ETA text
             eta_widget = self.query_one("#stat-eta", Static)
             eta_widget.update(f"{progress.eta_text} remaining")
+
+            # Retry / stall status
+            status_widget = self.query_one("#stat-status", Static)
+            status_widget.update(progress.status_text or "")
         except Exception:
             pass
 
@@ -88,15 +94,15 @@ class DownloadScreen(Screen):
         try:
             assert self.downloader is not None
             final_path = await self.downloader.start()
-            self.app.call_from_thread(
+            self.app.call_safe(
                 self.app.show_complete,
                 self.video_info,
                 final_path,
             )
         except asyncio.CancelledError:
-            self.app.call_from_thread(self.app.show_input)
+            self.app.call_safe(self.app.show_input)
         except Exception as e:
-            self.app.call_from_thread(
+            self.app.call_safe(
                 self.app.show_error,
                 "✕ Download error",
                 str(e),

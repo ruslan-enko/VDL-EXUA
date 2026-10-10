@@ -5,20 +5,29 @@ from urllib.parse import urlparse, unquote
 
 FLUFF_PATTERNS = [
     r"(?i)\bдивитись\s+онлайн\b",
+    r"(?i)\bдивитися\s+онлайн\b",
     r"(?i)\bсмотреть\s+онлайн\b",
+    r"(?i)\bдивитись\b",
+    r"(?i)\bдивитися\b",
     r"(?i)\bукраїнською\b",
     r"(?i)\bна\s+українській\b",
+    r"(?i)\bмовою\b",
     r"(?i)\bв\s+озвучці\b",
+    r"(?i)\bу\s+високій\s+якості\b",
+    r"(?i)\bв\s+високій\s+якості\b",
+    r"(?i)\bвисокій\s+якості\b",
     r"(?i)\bв\s+хорошій\s+якості\b",
     r"(?i)\bв\s+хорошем\s+качестве\b",
     r"(?i)\bбезкоштовно\b",
     r"(?i)\bбезплатно\b",
+    r"(?i)\bбесплатно\b",
     r"(?i)\bвсі\s+серії\b",
     r"(?i)\bвсе\s+серии\b",
     r"(?i)\bонлайн\b",
     r"(?i)\bhd\s*1080p?\b",
     r"(?i)\b1080p\b",
     r"(?i)\b720p\b",
+    r"(?i)\bHD\b",
     r"(?i)\bтрейлер\b",
 ]
 
@@ -65,6 +74,16 @@ def clean_title(title: str) -> str:
 
     result = title.strip()
 
+    # Prefer quoted serial name: Мультсеріал «Назва» 1-10 сезон ... → Назва
+    m = re.search(r"«([^»]{2,}?)»", result)
+    if m:
+        result = m.group(1).strip()
+    else:
+        m2 = re.search(r'"([^"]{2,}?)"', result)
+        # Only use double-quoted part when outer text looks like SEO fluff.
+        if m2 and re.search(r"(?i)(серіал|сериал|мульт|фільм|фильм|дивити|смотреть|сезон)", result):
+            result = m2.group(1).strip()
+
     # Remove site suffix
     for pattern in SITE_SUFFIX_PATTERNS:
         result = re.sub(pattern, "", result)
@@ -73,10 +92,25 @@ def clean_title(title: str) -> str:
     for pattern in FLUFF_PATTERNS:
         result = re.sub(pattern, "", result)
 
+    # Remove leading media-type words: Серіал / Мультсеріал / Фільм ...
+    # (both Ukrainian and Russian spellings).
+    result = re.sub(
+        r"(?i)^\s*(мультсеріал|мультсериал|мультфільм|мультфильм|серіал|сериал|фільм|фильм|мульт|аніме|аниме|кіно|кино)\s+",
+        "",
+        result,
+    )
+    # Remove season mentions: "1-10 сезон", "1, 2, 3 сезон", "1 сезон"
+    result = re.sub(r"(?i)\b\d+\s*[-–—]\s*\d+\s*сезон\w*", "", result)
+    result = re.sub(r"(?i)\b\d+(?:\s*,\s*\d+)+\s*сезон\w*", "", result)
+    result = re.sub(r"(?i)\b\d+\s*сезон\w*", "", result)
+
     # Clean up punctuation and whitespace
     result = re.sub(r"\s+", " ", result)
     result = re.sub(r"\s*[-–—]\s*$", "", result)
     result = re.sub(r"^\s*[-–—]\s*", "", result)
+    # Drop dangling prepositions left after fluff removal ("... в HD" → "... в").
+    result = re.sub(r"(?i)\s+\b[вузіз]\b\s*$", "", result)
+    result = result.strip(" «»\"'").strip()
     return result.strip()
 
 
@@ -115,11 +149,19 @@ def derive_video_title(
 
     # Check stream basename first for clean latin show name
     if stream_basename:
-        # e.g. lanterns.s01e07.ua.mvo_67431 -> Lanterns
-        clean_base = re.sub(r"(?i)[._-][sS]\d+[eE]\d+.*", "", stream_basename)
-        clean_base = re.sub(r"[_.-]+", " ", clean_base).strip()
-        if clean_base and len(clean_base) > 2:
-            base_title = clean_base.capitalize()
+        # Skip opaque CDN tokens (ashdi style: DK2XiHKMjuddnhH+BI8=) —
+        # they carry no title info; fall through to page title instead.
+        is_token = (
+            "+" in stream_basename
+            or "=" in stream_basename
+            or re.fullmatch(r"[A-Za-z0-9]{8,}", stream_basename) is not None
+        )
+        if not is_token:
+            # e.g. lanterns.s01e07.ua.mvo_67431 -> Lanterns
+            clean_base = re.sub(r"(?i)[._-][sS]\d+[eE]\d+.*", "", stream_basename)
+            clean_base = re.sub(r"[_.-]+", " ", clean_base).strip()
+            if clean_base and len(clean_base) > 2:
+                base_title = clean_base.capitalize()
 
     # If base_title not good, try cleaned page title
     if not base_title and page_title:
