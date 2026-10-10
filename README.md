@@ -11,7 +11,7 @@ Instead of memorizing long command flags, you simply launch `vdl`, paste a URL, 
 │                                                             │
 │   Paste video page URL                                      │
 │                                                             │
-│   › https://uafix.net/serials/lihtari/season-01-episode-07/ │
+│   › https://example.com/watch/12345                         │
 │                                                             │
 │   Enter continue                                  Esc quit  │
 │                                                             │
@@ -73,7 +73,7 @@ vdl
 Pass the URL directly to skip the paste prompt:
 
 ```bash
-vdl "https://uafix.net/serials/lihtari/season-01-episode-07/"
+vdl "https://example.com/watch/12345"
 ```
 
 ---
